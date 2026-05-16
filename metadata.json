@@ -1,0 +1,8 @@
+{
+  "name": "RG Maintenance",
+  "description": "Industrial maintenance management system for field technicians and facility managers.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

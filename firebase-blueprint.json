@@ -1,0 +1,90 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Technical team member profiles.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["admin", "technician"] },
+        "specialty": { "type": "string", "description": "e.g. Sénior, Especialista, Júnior" },
+        "status": { "type": "string", "enum": ["Online", "Em Tarefa", "Offline"] },
+        "compliance": { "type": "number" },
+        "tasksCount": { "type": "integer" },
+        "avgTime": { "type": "string" },
+        "rating": { "type": "number" },
+        "location": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "name", "role", "status"]
+    },
+    "Order": {
+      "title": "Maintenance Order",
+      "description": "Work orders assigned to technicians.",
+      "type": "object",
+      "properties": {
+        "equipment": { "type": "string" },
+        "technicianId": { "type": "string" },
+        "technicianName": { "type": "string" },
+        "priority": { "type": "string", "enum": ["HIGH", "MEDIUM", "LOW"] },
+        "status": { "type": "string", "enum": ["PENDING", "IN_PROGRESS", "CRITICAL", "COMPLETED"] },
+        "scheduledDate": { "type": "string", "format": "date-time" },
+        "dueDate": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "assignedBy": { "type": "string" }
+      },
+      "required": ["equipment", "priority", "status"]
+    },
+    "Intervention": {
+      "title": "Intervention History",
+      "description": "Historical record of maintenance performed.",
+      "type": "object",
+      "properties": {
+        "orderId": { "type": "string" },
+        "equipment": { "type": "string" },
+        "technician": { "type": "string" },
+        "technicianId": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "duration": { "type": "string" },
+        "type": { "type": "string", "enum": ["Preventiva", "Correctiva", "Preditiva"] },
+        "status": { "type": "string", "enum": ["Concluído", "Pendente", "Cancelado"] },
+        "description": { "type": "string" },
+        "partsUsed": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["equipment", "technicianId", "date", "status"]
+    },
+    "Notification": {
+      "title": "System Notification",
+      "description": "In-app alerts for technicians.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "message": { "type": "string" },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "message", "read"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Team profiles."
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Active tasks."
+    },
+    "/interventions/{interventionId}": {
+      "schema": "Intervention",
+      "description": "Full maintenance history."
+    },
+    "/notifications/{notificationId}": {
+      "schema": "Notification",
+      "description": "User specific alerts."
+    }
+  }
+}

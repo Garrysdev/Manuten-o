@@ -1,0 +1,99 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helper Functions ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+        request.auth.token.email == 'garrido.rui@gmail.com'
+      );
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // --- Validation Blueprints ---
+
+    function isValidUser(data) {
+      return data.uid == request.auth.uid &&
+             data.name is string && data.name.size() <= 100 &&
+             data.role in ['admin', 'technician'] &&
+             data.status in ['Online', 'Em Tarefa', 'Offline'];
+    }
+
+    function isValidOrder(data) {
+      return data.equipment is string && data.equipment.size() <= 200 &&
+             data.priority in ['HIGH', 'MEDIUM', 'LOW'] &&
+             data.status in ['PENDING', 'IN_PROGRESS', 'CRITICAL', 'COMPLETED'] &&
+             (data.get('scheduledDate', '') == '' || data.scheduledDate is string);
+    }
+
+    function isValidIntervention(data) {
+      return data.equipment is string &&
+             data.technicianId is string &&
+             data.status in ['Concluído', 'Pendente', 'Cancelado'];
+    }
+
+    function isValidNotification(data) {
+      return data.userId is string &&
+             data.message is string && data.message.size() <= 500 &&
+             data.read is bool;
+    }
+
+    // --- Collection Rules ---
+
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow update: if (isOwner(userId) && isValidUser(incoming()) && 
+                        incoming().diff(existing()).affectedKeys().hasOnly(['status', 'location', 'name'])) || 
+                      isAdmin();
+    }
+
+    match /orders/{orderId} {
+      allow read: if isSignedIn();
+      allow create: if isAdmin() && isValidOrder(incoming());
+      allow update: if (isAdmin() && isValidOrder(incoming())) ||
+                    (isSignedIn() && isValidOrder(incoming()) && 
+                     incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt']));
+      allow delete: if isAdmin();
+    }
+
+    match /interventions/{interventionId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidIntervention(incoming());
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isAdmin();
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid && 
+                      incoming().diff(existing()).affectedKeys().hasOnly(['read']);
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+  }
+}
