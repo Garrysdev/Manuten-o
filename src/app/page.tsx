@@ -343,7 +343,7 @@ export default async function LandingPage() {
             ))}
           </div>
           <blockquote className="text-2xl md:text-4xl font-bold text-slate-900 leading-tight mb-8">
-            "A RG Maintenance mudou completamente a forma como a nossa fábrica opera. Acabou o papel, acabou a desorganização. Temos tudo centralizado e os nossos diretores adoram os relatórios automáticos em PDF."
+            &quot;A RG Maintenance mudou completamente a forma como a nossa fábrica opera. Acabou o papel, acabou a desorganização. Temos tudo centralizado e os nossos diretores adoram os relatórios automáticos em PDF.&quot;
           </blockquote>
           <div className="flex items-center justify-center gap-4">
             <div className="h-12 w-12 rounded-full bg-slate-200 overflow-hidden">
